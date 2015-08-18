@@ -3,16 +3,61 @@ $(document).ready(function () {
 })
 
 function main() {
-    
+    getBibles();
+    getPassage('Romans1-6');
+//    getParsedPassage('John3:16');
 }
 
-
-var getData = function(tag) {
-
-    //
-    var url = "";
+var getParsedPassage = function(passage) {
+    var url = "https://api.biblia.com/v1/bible/parse.js"
     var request = {
-        site: 'stackoverflow'};
+        passage: passage,
+        key: 'da857b461ba05deb82f4430dcf8d71cc'
+    }
+    
+    var result = $.ajax({
+        url: url,
+        data: request,
+        dataType: "json",
+        type: "GET",
+    })
+    .done(function(result) {
+//        $('.results').append(result);
+        DEBUG(result);
+    })
+    .fail(function(jqXHR, error, errorThrown){
+        DEBUG(error);
+    });
+}
+
+var getPassage = function(passage) {
+    var url = "http://api.biblia.com/v1/bible/content/kjv.html";
+    var request = {        
+        passage: passage,
+        style: 'orationBibleParagraphs',
+        key: 'da857b461ba05deb82f4430dcf8d71cc'
+    };
+    
+    var result = $.ajax({
+        url: url,
+        data: request,
+        dataType: "HTML",
+        type: "GET",
+    })
+    .done(function(result) {
+        $('.results').append(result);
+        DEBUG(result);
+    })
+    .fail(function(jqXHR, error, errorThrown){
+        DEBUG(error);
+    });
+}
+
+var getBibles = function() {
+    
+    var url = "http://api.biblia.com/v1/bible/find";
+    var request = {
+        key: 'da857b461ba05deb82f4430dcf8d71cc'};
 
     var result = $.ajax({
         url: url,
@@ -20,18 +65,29 @@ var getData = function(tag) {
         dataType: "jsonp",
         type: "GET",
     })
-    .done(function(result){
-        var searchResults = showSearchResults(tag, result.items.length);
-
-        $('.search-results').html(searchResults);
-
-        $.each(result.items, function(i, item) {
-            var answerer = showAnswerer(item);
-            $('.results').append(answerer);
-        });
+    .done(function(result) {
+        $.each(result.bibles, function(i, bible) {
+            // Get bible and abreviatedTitle as DOM element and add to results DIV
+            var bibleData = getBibleData(bible);
+            $('.results').append(bibleData);
+        })
     })
     .fail(function(jqXHR, error, errorThrown){
-        var errorElem = showError(error);
-        $('.search-results').append(errorElem);
+        DEBUG(error);
     });
 };
+
+var getBibleData = function(bible) {
+    var result = '<p>' + bible.title +' (' + bible.abbreviatedTitle + '): ' + bible.bible + '</p>'
+    return result;
+}
+
+          
+          
+          
+
+// API Key: da857b461ba05deb82f4430dcf8d71cc
+
+var DEBUG = function(data) {
+    console.log(data);
+}
